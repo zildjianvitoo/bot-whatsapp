@@ -1,6 +1,6 @@
 import { Client, LocalAuth } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal";
-import replyGeminiChat from "./lib/gemini";
+
 import { handleMessage } from "./lib";
 import { allowedGroups } from "./lib/allowedGroups";
 
