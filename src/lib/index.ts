@@ -1,24 +1,51 @@
-import WAWebJS, { Client, MessageMedia } from "whatsapp-web.js";
+import WAWebJS, {
+  Client,
+  Contact,
+  MessageMedia,
+  GroupChat,
+} from "whatsapp-web.js";
 import replyGeminiChat from "./gemini";
 import { removeBackgroundFromImageBase64 } from "remove.bg";
 import prismadb from "./db";
+import { downloadTikTokVideo } from "./tiktok";
+import fs from "fs";
+import https from "https";
+import adminOnly from "./adminOnly";
+import { convert } from "./convert";
+import deleteFiles from "./deleteFiles";
 
 const commands = [
   {
-    prefix: ".help",
+    prefix: "*.help*",
     description: "Menampilkan command apa yang bisa digunakan botnya",
   },
   {
-    prefix: ".owner",
+    prefix: "*.owner*",
     description: "Menampilkan Kontak Owner Bot",
   },
-  { prefix: ".sticker", description: "Membuat sticker" },
+  { prefix: "*.sticker*", description: "Membuat sticker berdasarkan gambar" },
   {
-    prefix: ".sticker-removebg",
+    prefix: "*.sticker-removebg*",
     description: "Membuat sticker dengan background yang telah dihapus",
   },
-  { prefix: ".ai <prompt>", description: "Menggunakan ai" },
-  { prefix: ".removebg", description: "Hapus Background" },
+  { prefix: "*.ai promptanda*", description: "Menggunakan ai" },
+  { prefix: "*.removebg*", description: "Hapus Background" },
+  {
+    prefix: "*.tt linkvideo*",
+    description: "Mengirim video tiktok tanpa watermark",
+  },
+  {
+    prefix: "*.fb linkvideo*",
+    description: "Mengirim video facebook tanpa watermark",
+  },
+  {
+    prefix: "*.ig linkvideo*",
+    description: "Mengirim video instagram tanpa watermark",
+  },
+  {
+    prefix: "*.chat/nomortujuan/pesan*",
+    description: "Mengirim pesan (admin only)",
+  },
 ];
 
 export async function handleMessage(msg: WAWebJS.Message, client: Client) {
@@ -33,21 +60,32 @@ export async function handleMessage(msg: WAWebJS.Message, client: Client) {
     },
   });
 
-  if (bot?.status === "offline") {
+  if (
+    bot?.status === "offline" &&
+    commands.map((command) => command.prefix).includes(body)
+  ) {
     return "Bot sedang offline,hubungi owner untuk menghidupkannya kembali";
   }
 
   switch (true) {
     case body === ".help":
       return handleHelp(body);
+    case body.startsWith(".tt"):
+      return handleTiktok(msg, client);
     case body.startsWith(".ai"):
       return handleAIChat(msg, body);
-    case body === ".sticker" && type === "image":
+    case body.startsWith(".fb") || body.startsWith(".ig"):
+      return handleFacebookAndIG(msg, client);
+    case body === ".sticker":
       return handleSticker(msg, client);
-    case body === ".removebg" && type === "image":
+    case body === ".removebg":
       return handleRemoveBG(msg, client);
-    case body === ".sticker-removebg" && type === "image":
+    case body === ".sticker-removebg":
       return stickerRemoveBG(msg, client);
+    case body === ".all":
+      return handleMentionEveryone(msg, client);
+    case body.startsWith(".chat"):
+      return handleSendPrivateChat(msg, client);
     case body === ".owner":
       return showOwnerContact(msg, client);
     case body === ".terimakasih":
@@ -76,7 +114,7 @@ function handleHelp(msg: string) {
 async function handleAIChat(msg: WAWebJS.Message, body: string) {
   try {
     msg.react("⏱️");
-    const prompt = body.slice(3).trim();
+    const prompt = body.split(".ai")[1];
     const reply = await replyGeminiChat(prompt);
     msg.react("✅");
     return reply;
@@ -87,10 +125,13 @@ async function handleAIChat(msg: WAWebJS.Message, body: string) {
 }
 
 async function handleSticker(msg: WAWebJS.Message, client: Client) {
+  const media = await msg.downloadMedia();
+  if (!media) {
+    return "Tolong upload gambar dan ketikkan ulang perintahnya";
+  }
   try {
-    const media = await msg.downloadMedia();
     msg.react("⏱️");
-    client.sendMessage(msg.from, media, { sendMediaAsSticker: true });
+    await client.sendMessage(msg.from, media, { sendMediaAsSticker: true });
     msg.react("✅");
     return null;
   } catch (error) {
@@ -102,6 +143,10 @@ async function handleSticker(msg: WAWebJS.Message, client: Client) {
 
 async function handleRemoveBG(msg: WAWebJS.Message, client: Client) {
   const media = await msg.downloadMedia();
+
+  if (!media) {
+    return "Tolong upload gambar dan ketikkan ulang perintahnya";
+  }
   try {
     msg.react("⏱️");
     const result = await removeBackgroundFromImageBase64({
@@ -118,8 +163,8 @@ async function handleRemoveBG(msg: WAWebJS.Message, client: Client) {
       base64img,
       "convert.png"
     );
+    await client.sendMessage(msg.from, image);
     msg.react("✅");
-    client.sendMessage(msg.from, image);
     return null;
   } catch (error) {
     msg.react("❌");
@@ -130,6 +175,10 @@ async function handleRemoveBG(msg: WAWebJS.Message, client: Client) {
 
 async function stickerRemoveBG(msg: WAWebJS.Message, client: Client) {
   const media = await msg.downloadMedia();
+
+  if (!media) {
+    return "Tolong upload gambar dan ketikkan ulang perintahnya";
+  }
   try {
     msg.react("⏱️");
     const result = await removeBackgroundFromImageBase64({
@@ -142,22 +191,22 @@ async function stickerRemoveBG(msg: WAWebJS.Message, client: Client) {
     const { base64img } = result;
 
     const image = new MessageMedia("image/png", base64img, "convert.png");
-    msg.react("✅");
-    client.sendMessage(msg.from, image, {
+    await client.sendMessage(msg.from, image, {
       sendMediaAsSticker: true,
     });
+    msg.react("✅");
     return null;
   } catch (error) {
     msg.react("❌");
     console.log(error);
-    return "kocak";
+    return "fitur error";
   }
 }
 async function showOwnerContact(msg: WAWebJS.Message, client: Client) {
   try {
     msg.react("⏱️");
     const ownerContact = await client.getContactById("6285176734655@c.us");
-    client.sendMessage(msg.from, ownerContact);
+    await client.sendMessage(msg.from, ownerContact);
     msg.react("✅");
     return null;
   } catch (error) {
@@ -166,9 +215,8 @@ async function showOwnerContact(msg: WAWebJS.Message, client: Client) {
   }
 }
 async function handleBotStatus(msg: WAWebJS.Message, client: Client) {
-  if (msg.from !== "6285176734655@c.us") {
-    return "Anda bukan admin,hanya Admin yang bisa mengupdate status Bot";
-  }
+  console.log(msg.from);
+  adminOnly(msg.author!);
   try {
     if (msg.body === ".matikanbot") {
       await prismadb.bot.update({
@@ -180,8 +228,7 @@ async function handleBotStatus(msg: WAWebJS.Message, client: Client) {
         },
       });
 
-      client.sendMessage(msg.from, "Bot dimatikan,semoga harimu menyenangkan");
-      return null;
+      return "Bot dimatikan,semoga harimu menyenangkan";
     } else {
       await prismadb.bot.update({
         where: {
@@ -196,5 +243,132 @@ async function handleBotStatus(msg: WAWebJS.Message, client: Client) {
   } catch (error) {
     msg.react("❌");
     return "Fitur sedang dalam perbaikan";
+  }
+}
+
+async function handleTiktok(msg: WAWebJS.Message, client: Client) {
+  const url = msg.body.split(".tt")[1];
+
+  try {
+    msg.react("⏱️");
+    const videoUrl = await downloadTikTokVideo(url);
+    const media = await MessageMedia.fromUrl(videoUrl!, {
+      unsafeMime: true,
+    });
+
+    media.mimetype = "video/mp4";
+
+    await client.sendMessage(msg.from, media, {
+      caption: "ini videonya bg",
+    });
+    msg.react("✅");
+    return null;
+  } catch (error) {
+    msg.react("❌");
+    return "Error";
+  }
+}
+
+async function handleMentionEveryone(msg: WAWebJS.Message, client: Client) {
+  const allowedAdminToMentions = ["6285176734655@c.us", "6282282658275@c.us"];
+  msg.react("⏱️");
+  try {
+    const chats = await client.getChats();
+
+    const chatObjects = chats.filter((chat) => chat.isGroup);
+    const groupChats = chatObjects.map((groupChat) => {
+      const groupChatObj = groupChat as GroupChat;
+      return groupChatObj;
+    });
+
+    const validGroups = groupChats.filter((groupChat) => {
+      return groupChat.id._serialized === msg.from;
+    });
+
+    const allNumbers = validGroups[0].participants.map(
+      (participant) => participant.id._serialized
+    );
+
+    if (!allowedAdminToMentions.includes(msg.author!)) {
+      return "Hanya owner yang bisa memakai fitur ini";
+    }
+
+    const messageToMention = "Hai";
+
+    await client.sendMessage(msg.from, messageToMention, {
+      mentions: allNumbers,
+    });
+    msg.react("✅");
+    return null;
+  } catch (error) {
+    msg.react("❌");
+    console.error(error);
+    return "Terjadi error pada fitur ini,akan segera diperbaiki";
+  }
+}
+
+async function handleSendPrivateChat(msg: WAWebJS.Message, client: Client) {
+  const [_, numberToChat, messageToChat] = msg.body.split("/");
+  if (!adminOnly(msg.author!)) {
+    return "Hanya admin yang bisa memakai fitur ini";
+  }
+  try {
+    // msg.react("⏱️");
+    await client.sendMessage(numberToChat + "@c.us", messageToChat);
+    msg.react("✅");
+    return null;
+  } catch (error) {
+    msg.react("❌");
+    return "Error";
+  }
+}
+
+async function handleFacebookAndIG(msg: WAWebJS.Message, client: Client) {
+  let url;
+
+  if (msg.body.startsWith(".fb")) {
+    url = msg.body.split(".fb")[1];
+  } else {
+    url = msg.body.split(".ig")[1];
+  }
+
+  try {
+    msg.react("⏱️");
+    const { ndown } = await require("nayan-media-downloader");
+    const { data } = await ndown(url);
+
+    const downloadUrl = await data[0].url;
+    const file = fs.createWriteStream("kocak.mp4");
+
+    const request = https.get(downloadUrl, function (response) {
+      response.pipe(file);
+
+      file.on("finish", async () => {
+        file.close();
+
+        await convert("kocak.mp4", "kocak2.mp4");
+        const videoBuffer = fs.readFileSync("kocak2.mp4");
+        const videoMedia = new MessageMedia(
+          "video/mp4",
+          videoBuffer.toString("base64")
+        );
+        await client.sendMessage(msg.from, videoMedia);
+        msg.react("✅");
+        deleteFiles(["kocak.mp4", "kocak2.mp4"]);
+      });
+    });
+
+    // const media = await MessageMedia.fromUrl(downloadUrl, {
+    //   unsafeMime: true,
+    // });
+    // media.mimetype = "video/mp4";
+
+    // await client.sendMessage(msg.from, media);
+
+    return null;
+  } catch (error) {
+    console.log(error);
+    msg.react("❌");
+    return "Error";
   }
 }

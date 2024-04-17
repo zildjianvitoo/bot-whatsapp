@@ -1,6 +1,5 @@
 import { Client, LocalAuth } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal";
-
 import { handleMessage } from "./lib";
 import { allowedGroups } from "./lib/allowedGroups";
 
@@ -10,6 +9,12 @@ const client = new Client({
     type: "remote",
     remotePath:
       "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html",
+  },
+  puppeteer: {
+    executablePath:
+      "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
   },
 });
 
@@ -21,16 +26,16 @@ client.on("ready", () => {
   console.log("Bot Siap!");
 });
 
-client.on("message_create", async (message) => {
+client.on("message_create", async (msg) => {
   try {
-    if (allowedGroups.includes(message.from)) {
-      const reply = await handleMessage(message, client);
+    if (allowedGroups.includes(msg.from)) {
+      const reply = await handleMessage(msg, client);
       if (reply !== null) {
-        await message.reply(reply);
+        await msg.reply(reply);
       }
     }
   } catch (error) {
-    message.reply("Bentar bang lagi tahap development");
+    msg.reply("Bentar bang lagi tahap development");
   }
 });
 
