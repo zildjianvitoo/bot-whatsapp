@@ -11,8 +11,9 @@ import { downloadTikTokVideo } from "./tiktok";
 import fs from "fs";
 import https from "https";
 import adminOnly from "./adminOnly";
-import { convertToMp4 } from "./convert";
+import { convertToMp4, dateTimeToString } from "./convert";
 import deleteFiles from "./deleteFiles";
+import axios from "axios";
 
 const commands = [
   {
@@ -44,6 +45,10 @@ const commands = [
   },
   {
     prefix: "*.wek*",
+    description: "Mengirim sticker wekk",
+  },
+  {
+    prefix: "*.crypto symbolcoin*",
     description: "Mengirim sticker wekk",
   },
   {
@@ -97,6 +102,8 @@ export async function handleMessage(msg: WAWebJS.Message, client: Client) {
       return showOwnerContact(msg, client);
     case body === ".wek":
       return handleSendWek(msg, client);
+    case body.startsWith(".crypto"):
+      return handleSendCryptoPrice(msg, client);
     case body === ".terimakasih":
       return "Sama sama mas";
     case body === ".patul":
@@ -224,7 +231,7 @@ async function showOwnerContact(msg: WAWebJS.Message, client: Client) {
   }
 }
 async function handleBotStatus(msg: WAWebJS.Message, client: Client) {
-  if (!adminOnly(msg.author!)) {
+  if (!adminOnly(msg.author || msg.from)) {
     return "Hanya admin yang bisa mengupdate status bot";
   }
   try {
@@ -415,6 +422,35 @@ async function handleSendWek(msg: WAWebJS.Message, client: Client) {
   }
 }
 
-async function handleCreateSSImage(msg: WAWebJS.Message, client: Client) {
-  const { body } = await msg.getQuotedMessage();
+async function handleSendCryptoPrice(msg: WAWebJS.Message, client: Client) {
+  const coinSymbol = msg.body.split(".crypto")[1].toUpperCase().trim();
+  console.log(coinSymbol);
+  try {
+    msg.react("⏱️");
+    const { data } = await axios.get(
+      `https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest?symbol=${coinSymbol}`,
+      {
+        headers: {
+          "X-CMC_PRO_API_KEY": "3f37cf0c-2f54-4d31-977f-e053101b95b2",
+        },
+      }
+    );
+    const coin = data.data[coinSymbol][0].quote.USD;
+    console.log(coin);
+    msg.react("✅");
+    return `
+    Harga ${coinSymbol} Saat Ini $${coin.price
+      .toFixed(2)
+      .toLocaleString("id-ID")}\n
+    Persentase perubahan 1 jam terakhir ${coin.percent_change_1h.toFixed(2)}%\n
+    Persentase perubahan 24 jam terakhir ${coin.percent_change_24h.toFixed(
+      2
+    )}%\n
+    Update terakhir: ${dateTimeToString(coin.last_updated)}
+    `;
+  } catch (error: any) {
+    msg.react("❌");
+    console.log(error?.response?.data);
+    return "Error";
+  }
 }
