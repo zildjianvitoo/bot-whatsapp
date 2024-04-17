@@ -11,7 +11,7 @@ import { downloadTikTokVideo } from "./tiktok";
 import fs from "fs";
 import https from "https";
 import adminOnly from "./adminOnly";
-import { convert } from "./convert";
+import { convertToMp4 } from "./convert";
 import deleteFiles from "./deleteFiles";
 
 const commands = [
@@ -43,13 +43,17 @@ const commands = [
     description: "Mengirim video instagram tanpa watermark",
   },
   {
+    prefix: "*.wek*",
+    description: "Mengirim sticker wekk",
+  },
+  {
     prefix: "*.chat/nomortujuan/pesan*",
     description: "Mengirim pesan (admin only)",
   },
 ];
 
 export async function handleMessage(msg: WAWebJS.Message, client: Client) {
-  const { body, type } = msg;
+  const { body } = msg;
 
   if (body === ".matikanbot" || body === ".hidupkanbot") {
     return handleBotStatus(msg, client);
@@ -60,10 +64,10 @@ export async function handleMessage(msg: WAWebJS.Message, client: Client) {
     },
   });
 
-  if (
-    bot?.status === "offline" &&
-    commands.map((command) => command.prefix).includes(body)
-  ) {
+  const prefixArray = commands.map((command) => command.prefix.split("*")[1]);
+  const isBodyIncluded = prefixArray.some((item) => body.includes(item));
+
+  if (bot?.status === "offline" && isBodyIncluded) {
     return "Bot sedang offline,hubungi owner untuk menghidupkannya kembali";
   }
 
@@ -86,8 +90,13 @@ export async function handleMessage(msg: WAWebJS.Message, client: Client) {
       return handleMentionEveryone(msg, client);
     case body.startsWith(".chat"):
       return handleSendPrivateChat(msg, client);
+    // case body.startsWith(".ktl"):
+    //   const msgToSend = body.split(".ktl")[1];
+    //   return `Kontolll ${msgToSend}`;
     case body === ".owner":
       return showOwnerContact(msg, client);
+    case body === ".wek":
+      return handleSendWek(msg, client);
     case body === ".terimakasih":
       return "Sama sama mas";
     case body === ".patul":
@@ -215,8 +224,9 @@ async function showOwnerContact(msg: WAWebJS.Message, client: Client) {
   }
 }
 async function handleBotStatus(msg: WAWebJS.Message, client: Client) {
-  console.log(msg.from);
-  adminOnly(msg.author!);
+  if (!adminOnly(msg.author!)) {
+    return "Hanya admin yang bisa mengupdate status bot";
+  }
   try {
     if (msg.body === ".matikanbot") {
       await prismadb.bot.update({
@@ -248,19 +258,33 @@ async function handleBotStatus(msg: WAWebJS.Message, client: Client) {
 
 async function handleTiktok(msg: WAWebJS.Message, client: Client) {
   const url = msg.body.split(".tt")[1];
-
+  if (!url) {
+    return "Tolong masukkan URL/Link video";
+  }
   try {
     msg.react("⏱️");
     const videoUrl = await downloadTikTokVideo(url);
-    const media = await MessageMedia.fromUrl(videoUrl!, {
-      unsafeMime: true,
+
+    const file = fs.createWriteStream("kocak.mp4");
+
+    const request = https.get(videoUrl, function (response) {
+      response.pipe(file);
+
+      file.on("finish", async () => {
+        file.close();
+
+        await convertToMp4("kocak.mp4", "kocak2.mp4");
+        const videoBuffer = fs.readFileSync("kocak2.mp4");
+        const videoMedia = new MessageMedia(
+          "video/mp4",
+          videoBuffer.toString("base64")
+        );
+        await client.sendMessage(msg.from, videoMedia);
+        msg.react("✅");
+        deleteFiles(["kocak.mp4", "kocak2.mp4"]);
+      });
     });
 
-    media.mimetype = "video/mp4";
-
-    await client.sendMessage(msg.from, media, {
-      caption: "ini videonya bg",
-    });
     msg.react("✅");
     return null;
   } catch (error) {
@@ -332,6 +356,10 @@ async function handleFacebookAndIG(msg: WAWebJS.Message, client: Client) {
     url = msg.body.split(".ig")[1];
   }
 
+  if (!url) {
+    return "Tolong masukkan URL/Link video";
+  }
+
   try {
     msg.react("⏱️");
     const { ndown } = await require("nayan-media-downloader");
@@ -346,7 +374,7 @@ async function handleFacebookAndIG(msg: WAWebJS.Message, client: Client) {
       file.on("finish", async () => {
         file.close();
 
-        await convert("kocak.mp4", "kocak2.mp4");
+        await convertToMp4("kocak.mp4", "kocak2.mp4");
         const videoBuffer = fs.readFileSync("kocak2.mp4");
         const videoMedia = new MessageMedia(
           "video/mp4",
@@ -371,4 +399,22 @@ async function handleFacebookAndIG(msg: WAWebJS.Message, client: Client) {
     msg.react("❌");
     return "Error";
   }
+}
+
+async function handleSendWek(msg: WAWebJS.Message, client: Client) {
+  try {
+    client.sendMessage(
+      msg.from,
+      MessageMedia.fromFilePath("./images/kucing-nunjuk.webp"),
+      { sendMediaAsSticker: true }
+    );
+    return null;
+  } catch (error) {
+    msg.react("❌");
+    return "Error";
+  }
+}
+
+async function handleCreateSSImage(msg: WAWebJS.Message, client: Client) {
+  const { body } = await msg.getQuotedMessage();
 }

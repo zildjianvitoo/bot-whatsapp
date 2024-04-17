@@ -35,6 +35,7 @@ client.on("message_create", async (msg) => {
       }
     }
   } catch (error) {
+    console.log(error);
     msg.reply("Bentar bang lagi tahap development");
   }
 });
