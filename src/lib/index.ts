@@ -324,7 +324,7 @@ async function handleMentionEveryone(msg: WAWebJS.Message, client: Client) {
       return "Hanya owner yang bisa memakai fitur ini";
     }
 
-    const messageToMention = "Hai";
+    const messageToMention = "Gass daftar IFFEST!!!!";
 
     await client.sendMessage(msg.from, messageToMention, {
       mentions: allNumbers,
@@ -424,24 +424,22 @@ async function handleSendWek(msg: WAWebJS.Message, client: Client) {
 
 async function handleSendCryptoPrice(msg: WAWebJS.Message, client: Client) {
   const coinSymbol = msg.body.split(".crypto")[1].toUpperCase().trim();
-  console.log(coinSymbol);
+
   try {
     msg.react("⏱️");
     const { data } = await axios.get(
-      `https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest?symbol=${coinSymbol}`,
+      `https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest?symbol=${coinSymbol}&convert=idr`,
       {
         headers: {
           "X-CMC_PRO_API_KEY": "3f37cf0c-2f54-4d31-977f-e053101b95b2",
         },
       }
     );
-    const coin = data.data[coinSymbol][0].quote.USD;
+    const coin = data.data[coinSymbol][0].quote.IDR;
     console.log(coin);
     msg.react("✅");
     return `
-    Harga ${coinSymbol} Saat Ini $${coin.price
-      .toFixed(2)
-      .toLocaleString("id-ID")}\n
+    Harga ${coinSymbol} Saat Ini Rp. ${coin.price.toLocaleString("id-ID")}\n
     Persentase perubahan 1 jam terakhir ${coin.percent_change_1h.toFixed(2)}%\n
     Persentase perubahan 24 jam terakhir ${coin.percent_change_24h.toFixed(
       2
@@ -450,7 +448,7 @@ async function handleSendCryptoPrice(msg: WAWebJS.Message, client: Client) {
     `;
   } catch (error: any) {
     msg.react("❌");
-    console.log(error?.response?.data);
+    console.log(error);
     return "Error";
   }
 }
