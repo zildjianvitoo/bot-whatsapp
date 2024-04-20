@@ -29,30 +29,32 @@ const commands = [
     prefix: "*.sticker-removebg*",
     description: "Membuat sticker dengan background yang telah dihapus",
   },
-  { prefix: "*.ai promptanda*", description: "Menggunakan ai" },
+  {
+    prefix: "*.conversticker*",
+    description: "Mengubah sticker menjadi gambar",
+  },
+  { prefix: "*.ai (promptanda)*", description: "Menggunakan ai" },
   { prefix: "*.removebg*", description: "Hapus Background" },
   {
-    prefix: "*.tt linkvideo*",
-    description: "Mengirim video tiktok tanpa watermark",
+    prefix: "*.tt (linkvideo)*",
+    description:
+      "Mengirim video tiktok tanpa watermark (lebih cepat dibanding .sosmed)",
   },
   {
-    prefix: "*.fb linkvideo*",
-    description: "Mengirim video facebook tanpa watermark",
-  },
-  {
-    prefix: "*.ig linkvideo*",
-    description: "Mengirim video instagram tanpa watermark",
+    prefix: "*.sosmed (linkvideo)*",
+    description:
+      "Mengirim video sosmed(facebook, tiktok, twitter, instagram, youtube, pinterest, gdrive) tanpa watermark",
   },
   {
     prefix: "*.wek*",
     description: "Mengirim sticker wekk",
   },
   {
-    prefix: "*.crypto symbolcoin*",
-    description: "Mengirim sticker wekk",
+    prefix: "*.crypto (symbolcoin)*",
+    description: "Mengirim harga coin cypto",
   },
   {
-    prefix: "*.chat/nomortujuan/pesan*",
+    prefix: "*.chat/(nomortujuan)/(pesan)*",
     description: "Mengirim pesan (admin only)",
   },
 ];
@@ -85,8 +87,10 @@ export async function handleMessage(msg: WAWebJS.Message, client: Client) {
       return handleTiktok(msg, client);
     case body.startsWith(".ai"):
       return handleAIChat(msg, body);
-    case body.startsWith(".fb") || body.startsWith(".ig"):
+    case body.startsWith(".sosmed"):
       return handleFacebookAndIG(msg, client);
+    case body.startsWith(".twt"):
+      return handleTwitter(msg, client);
     case body === ".sticker":
       return handleSticker(msg, client);
     case body === ".removebg":
@@ -97,6 +101,10 @@ export async function handleMessage(msg: WAWebJS.Message, client: Client) {
       return handleMentionEveryone(msg, client);
     case body.startsWith(".chat"):
       return handleSendPrivateChat(msg, client);
+    case body === ".izinoff":
+      return handleIzinOff(msg, client);
+    case body === ".convertsticker":
+      return handleConvertSticker(msg, client);
     // case body.startsWith(".ktl"):
     //   const msgToSend = body.split(".ktl")[1];
     //   return `Kontolll ${msgToSend}`;
@@ -143,13 +151,43 @@ async function handleAIChat(msg: WAWebJS.Message, body: string) {
 }
 
 async function handleSticker(msg: WAWebJS.Message, client: Client) {
-  const media = await msg.downloadMedia();
+  let media = await msg.downloadMedia();
+
+  if (msg.hasQuotedMsg) {
+    const quotedMsg = await msg.getQuotedMessage();
+    media = await quotedMsg.downloadMedia();
+  }
   if (!media) {
     return "Tolong upload gambar dan ketikkan ulang perintahnya";
   }
   try {
     msg.react("⏱️");
-    await client.sendMessage(msg.from, media, { sendMediaAsSticker: true });
+    await client.sendMessage(msg.from, media, {
+      sendMediaAsSticker: true,
+      stickerAuthor: "Bot V Ganteng",
+    });
+    msg.react("✅");
+    return null;
+  } catch (error) {
+    console.log(error);
+    msg.react("❌");
+    return "Fitur sedang error";
+  }
+}
+
+async function handleConvertSticker(msg: WAWebJS.Message, client: Client) {
+  let media = await msg.downloadMedia();
+
+  if (msg.hasQuotedMsg) {
+    const quotedMsg = await msg.getQuotedMessage();
+    media = await quotedMsg.downloadMedia();
+  }
+  if (!media) {
+    return "Tolong upload gambar dan ketikkan ulang perintahnya";
+  }
+  try {
+    msg.react("⏱️");
+    await client.sendMessage(msg.from, media);
     msg.react("✅");
     return null;
   } catch (error) {
@@ -192,7 +230,12 @@ async function handleRemoveBG(msg: WAWebJS.Message, client: Client) {
 }
 
 async function stickerRemoveBG(msg: WAWebJS.Message, client: Client) {
-  const media = await msg.downloadMedia();
+  let media = await msg.downloadMedia();
+
+  if (msg.hasQuotedMsg) {
+    const quotedMsg = await msg.getQuotedMessage();
+    media = await quotedMsg.downloadMedia();
+  }
 
   if (!media) {
     return "Tolong upload gambar dan ketikkan ulang perintahnya";
@@ -357,13 +400,13 @@ async function handleSendPrivateChat(msg: WAWebJS.Message, client: Client) {
 }
 
 async function handleFacebookAndIG(msg: WAWebJS.Message, client: Client) {
-  let url;
+  const url = msg.body.split(".sosmed")[1];
 
-  if (msg.body.startsWith(".fb")) {
-    url = msg.body.split(".fb")[1];
-  } else {
-    url = msg.body.split(".ig")[1];
-  }
+  // if (msg.body.startsWith(".fb")) {
+  //   url = msg.body.split(".fb")[1];
+  // } else {
+  //   url = msg.body.split(".ig")[1];
+  // }
 
   if (!url) {
     return "Tolong masukkan URL/Link video";
@@ -371,36 +414,104 @@ async function handleFacebookAndIG(msg: WAWebJS.Message, client: Client) {
 
   try {
     msg.react("⏱️");
-    const { ndown } = await require("nayan-media-downloader");
-    const { data } = await ndown(url);
-
-    const downloadUrl = await data[0].url;
-    const file = fs.createWriteStream("kocak.mp4");
+    const { alldown } = await require("nayan-media-downloader");
+    const { data } = await alldown(url);
+    console.log(data);
+    const downloadUrl = await data.high;
+    msg.react("3️⃣");
 
     const request = https.get(downloadUrl, function (response) {
+      const attachment = response.headers["content-disposition"]?.split(".");
+      const fileType = attachment?.at(attachment.length - 1);
+      const file = fs.createWriteStream(`kocak.${fileType}`);
       response.pipe(file);
 
       file.on("finish", async () => {
         file.close();
+        msg.react("2️⃣");
+        if (fileType === "mp4") {
+          await convertToMp4(`kocak.${fileType}`, `kocak2.${fileType}`);
+          const fileBuffer = fs.readFileSync(`kocak2.${fileType}`);
+          msg.react("1️⃣");
 
-        await convertToMp4("kocak.mp4", "kocak2.mp4");
-        const videoBuffer = fs.readFileSync("kocak2.mp4");
-        const videoMedia = new MessageMedia(
-          "video/mp4",
-          videoBuffer.toString("base64")
-        );
-        await client.sendMessage(msg.from, videoMedia);
+          const fileMedia = new MessageMedia(
+            "video/mp4",
+            fileBuffer.toString("base64")
+          );
+          await client.sendMessage(msg.from, fileMedia);
+          deleteFiles([`kocak.${fileType}`, `kocak2.${fileType}`]);
+        } else {
+          const fileBuffer = fs.readFileSync(`kocak.${fileType}`);
+          msg.react("1️⃣");
+
+          const fileMedia = new MessageMedia(
+            `image/${fileType}`,
+            fileBuffer.toString("base64")
+          );
+          await client.sendMessage(msg.from, fileMedia);
+          deleteFiles([`kocak.${fileType}`]);
+        }
         msg.react("✅");
-        deleteFiles(["kocak.mp4", "kocak2.mp4"]);
       });
     });
 
-    // const media = await MessageMedia.fromUrl(downloadUrl, {
-    //   unsafeMime: true,
-    // });
-    // media.mimetype = "video/mp4";
+    return null;
+  } catch (error) {
+    console.log(error);
+    msg.react("❌");
+    return "Error";
+  }
+}
 
-    // await client.sendMessage(msg.from, media);
+async function handleTwitter(msg: WAWebJS.Message, client: Client) {
+  const url = msg.body.split(".twt")[1];
+
+  if (!url) {
+    return "Tolong masukkan URL/Link video";
+  }
+
+  try {
+    msg.react("⏱️");
+    const { twitterdown } = require("nayan-media-downloader");
+    const data = await twitterdown(url);
+    console.log(data);
+    const downloadUrl = await data.data.HD;
+    msg.react("3️⃣");
+
+    const request = https.get(downloadUrl, function (response) {
+      const attachment = response.headers["content-disposition"]?.split(".");
+      const fileType = attachment?.at(attachment.length - 1);
+      const file = fs.createWriteStream(`kocak.${fileType}`);
+      response.pipe(file);
+
+      file.on("finish", async () => {
+        file.close();
+        msg.react("2️⃣");
+        if (fileType === "mp4") {
+          await convertToMp4(`kocak.${fileType}`, `kocak2.${fileType}`);
+          const fileBuffer = fs.readFileSync(`kocak2.${fileType}`);
+          msg.react("1️⃣");
+
+          const fileMedia = new MessageMedia(
+            "video/mp4",
+            fileBuffer.toString("base64")
+          );
+          await client.sendMessage(msg.from, fileMedia);
+          deleteFiles([`kocak.${fileType}`, `kocak2.${fileType}`]);
+        } else {
+          const fileBuffer = fs.readFileSync(`kocak.${fileType}`);
+          msg.react("1️⃣");
+
+          const fileMedia = new MessageMedia(
+            `image/${fileType}`,
+            fileBuffer.toString("base64")
+          );
+          await client.sendMessage(msg.from, fileMedia);
+          deleteFiles([`kocak.${fileType}`]);
+        }
+        msg.react("✅");
+      });
+    });
 
     return null;
   } catch (error) {
@@ -448,6 +559,28 @@ async function handleSendCryptoPrice(msg: WAWebJS.Message, client: Client) {
     )}%\n
     Update terakhir: ${dateTimeToString(coin.last_updated)}
     `;
+  } catch (error: any) {
+    msg.react("❌");
+    console.log(error);
+    return "Error";
+  }
+}
+
+async function handleIzinOff(msg: WAWebJS.Message, client: Client) {
+  if (!adminOnly(msg.author!)) {
+    return "Hanya admin yang bisa memakai fitur ini";
+  }
+  try {
+    msg.react("⏱️");
+
+    await client.sendMessage(
+      msg.from,
+      MessageMedia.fromFilePath("./images/izinoff.jpg"),
+      { sendMediaAsSticker: true }
+    );
+
+    msg.react("✅");
+    return null;
   } catch (error: any) {
     msg.react("❌");
     console.log(error);

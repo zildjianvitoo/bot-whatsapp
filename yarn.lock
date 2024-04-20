@@ -2357,10 +2357,10 @@ natural-compare@^1.4.0:
   resolved "https://registry.yarnpkg.com/natural-compare/-/natural-compare-1.4.0.tgz#4abebfeed7541f2c27acfb29bdbbd15c8d5ba4f7"
   integrity sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==
 
-nayan-media-downloader@^2.1.4:
-  version "2.1.4"
-  resolved "https://registry.yarnpkg.com/nayan-media-downloader/-/nayan-media-downloader-2.1.4.tgz#6d104fbbd162197286ef55ac1e2d3c4f482dcc14"
-  integrity sha512-RHLEZNOC0Ynxum3eYsV5B8glwtiYPUnoogFgzt8dLZj5QDccIA0Uu+HXbuXugn8kcw9+XqKovxFdTVXR2U3hRQ==
+nayan-media-downloader@^2.1.7:
+  version "2.1.7"
+  resolved "https://registry.yarnpkg.com/nayan-media-downloader/-/nayan-media-downloader-2.1.7.tgz#429bc9d9d14fe024977d5a54e893e4653a0cf6cf"
+  integrity sha512-xuD2LbFgfhdzAk4DWqPQfm9J4GO9qb1p2rGZG4Txife9ZpKNH19Li0Nt11E/za5rbBUJDyQ/TkKTQQdad7yXhg==
   dependencies:
     axios "^1.6.7"
     cheerio "~1.0.0-rc.5"
