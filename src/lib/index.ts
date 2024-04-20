@@ -70,7 +70,9 @@ export async function handleMessage(msg: WAWebJS.Message, client: Client) {
   });
 
   const prefixArray = commands.map((command) => command.prefix.split("*")[1]);
-  const isBodyIncluded = prefixArray.some((item) => body.includes(item));
+  const isBodyIncluded = prefixArray.some((item) =>
+    body.includes(item.split(" ")[0])
+  );
 
   if (bot?.status === "offline" && isBodyIncluded) {
     return "Bot sedang offline,hubungi owner untuk menghidupkannya kembali";

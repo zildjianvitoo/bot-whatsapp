@@ -27,16 +27,11 @@ client.on("ready", () => {
 });
 
 client.on("message_create", async (msg) => {
-  try {
-    if (allowedGroups.includes(msg.from)) {
-      const reply = await handleMessage(msg, client);
-      if (reply !== null) {
-        await msg.reply(reply);
-      }
+  if (allowedGroups.includes(msg.from)) {
+    const reply = await handleMessage(msg, client);
+    if (reply !== null) {
+      await msg.reply(reply);
     }
-  } catch (error) {
-    console.log(error);
-    msg.reply("Bentar bang lagi tahap development");
   }
 });
 
