@@ -80,6 +80,9 @@ export async function handleMessage(msg: WAWebJS.Message, client: Client) {
     return "Bot sedang offline,hubungi owner untuk menghidupkannya kembali";
   }
 
+  // if (body.toLowerCase().includes("kontol")) {
+  //   return "Kontol kau tula";
+  // }
   switch (true) {
     case body === ".help":
       return handleHelp(body);
@@ -105,6 +108,8 @@ export async function handleMessage(msg: WAWebJS.Message, client: Client) {
       return handleIzinOff(msg, client);
     case body === ".convertsticker":
       return handleConvertSticker(msg, client);
+    case body.startsWith(".cuaca"):
+      return handleWeather(msg, client);
     // case body.startsWith(".ktl"):
     //   const msgToSend = body.split(".ktl")[1];
     //   return `Kontolll ${msgToSend}`;
@@ -145,6 +150,7 @@ async function handleAIChat(msg: WAWebJS.Message, body: string) {
     msg.react("✅");
     return reply;
   } catch (error) {
+    console.log(error);
     msg.react("❌");
     return "Fitur sedang error,segera diperbaiki";
   }
@@ -369,7 +375,7 @@ async function handleMentionEveryone(msg: WAWebJS.Message, client: Client) {
       return "Hanya owner yang bisa memakai fitur ini";
     }
 
-    const messageToMention = "Gass daftar IFFEST!!!!";
+    const messageToMention = "Kocak!!!!";
 
     await client.sendMessage(msg.from, messageToMention, {
       mentions: allNumbers,
@@ -559,6 +565,44 @@ async function handleSendCryptoPrice(msg: WAWebJS.Message, client: Client) {
     )}%\n
     Update terakhir: ${dateTimeToString(coin.last_updated)}
     `;
+  } catch (error: any) {
+    msg.react("❌");
+    console.log(error);
+    return "Error";
+  }
+}
+
+async function handleWeather(msg: WAWebJS.Message, client: Client) {
+  const APIKEY = "03da012b03646102f8592261b843d740";
+
+  const kota = msg.body.split(".cuaca")[1].trim();
+  console.log(kota);
+  try {
+    const { data: dataCoor } = await axios.post(
+      `https://api.openweathermap.org/data/2.5/weather?q=${kota}&appid=${APIKEY}`
+    );
+    //api.openweathermap.org/data/2.5/weather?q=London&appid=
+    msg.react("⏱️");
+    const { data } = await axios.get(
+      `https://api.openweathermap.org/data/2.5/weather?lat=${Number(
+        dataCoor.coord.lat
+      )}&lon=${Number(dataCoor.coord.lon)}&appid=${APIKEY}`,
+      {
+        headers: {
+          "X-CMC_PRO_API_KEY": "3f37cf0c-2f54-4d31-977f-e053101b95b2",
+        },
+      }
+    );
+    await client.sendMessage(
+      msg.from,
+      `CUACA HARI INI DI KOTA ${kota}
+adalah ${data.weather[0].main}
+deskripsi : ${data.weather[0].description}
+      `
+    );
+
+    msg.react("✅");
+    return null;
   } catch (error: any) {
     msg.react("❌");
     console.log(error);

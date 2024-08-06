@@ -12,7 +12,7 @@ const client = new Client({
   },
   puppeteer: {
     executablePath:
-      "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+      "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
     headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   },
@@ -23,7 +23,7 @@ client.on("qr", (qr) => {
 });
 
 client.on("ready", () => {
-  console.log("Bot Siap!");
+  console.log("Bot Siap !");
 });
 
 client.on("message_create", async (msg) => {

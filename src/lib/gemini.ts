@@ -2,10 +2,10 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export default async function replyGeminiChat(messsage: string) {
   const genAI = new GoogleGenerativeAI(
-    "AIzaSyAQkv-a8gP-A4Dn7nOGRdX-nArRNRHJ8Tc"
+    "AIzaSyBfRSi5jL6yF-KOPx0RC-KcTvW1IZkxciE"
   );
 
-  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
   const chat = model.startChat({
     history: [
