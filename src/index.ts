@@ -27,23 +27,15 @@ client.on("ready", () => {
 });
 
 client.on("group_join", async (notification) => {
-  console.log(notification.chatId);
-  if (notification.chatId === "120363320654299029@g.us") {
-    const chatId = notification.chatId;
+  // if (notification.chatId === "120363320654299029@g.us") {
+  const chatId = notification.chatId;
 
-    // Dapatkan informasi kontak pengguna yang baru bergabung
-    for (const id of notification.recipientIds) {
-      const contact = await client.getContactById(id);
-      const name =
-        contact.pushname || contact.verifiedName || contact.name || "User";
-
-      // Kirim pesan sambutan ke grup
-      const welcomeMessage = `Selamat datang di grup Volunteer SRIFOTON 2024, ${name}!,
+  const welcomeMessage = `Selamat datang di grup Volunteer SRIFOTON 2024!!,
 semoga betah!!`;
-      console.log("masukkk");
-      client.sendMessage(chatId, welcomeMessage);
-    }
-  }
+
+  client.sendMessage(chatId, welcomeMessage);
+
+  // }
 });
 
 client.on("message_create", async (msg) => {
