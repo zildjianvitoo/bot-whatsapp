@@ -1,4 +1,4 @@
-import { Client, LocalAuth } from "whatsapp-web.js";
+import { Client, GroupNotification, LocalAuth } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal";
 import { handleMessage } from "./lib";
 import { allowedGroups } from "./lib/allowedGroups";
@@ -24,6 +24,26 @@ client.on("qr", (qr) => {
 
 client.on("ready", () => {
   console.log("Bot Siap !");
+});
+
+client.on("group_join", async (notification) => {
+  console.log(notification.chatId);
+  if (notification.chatId === "120363320654299029@g.us") {
+    const chatId = notification.chatId;
+
+    // Dapatkan informasi kontak pengguna yang baru bergabung
+    for (const id of notification.recipientIds) {
+      const contact = await client.getContactById(id);
+      const name =
+        contact.pushname || contact.verifiedName || contact.name || "User";
+
+      // Kirim pesan sambutan ke grup
+      const welcomeMessage = `Selamat datang di grup Volunteer SRIFOTON 2024, ${name}!,
+semoga betah!!`;
+      console.log("masukkk");
+      client.sendMessage(chatId, welcomeMessage);
+    }
+  }
 });
 
 client.on("message_create", async (msg) => {

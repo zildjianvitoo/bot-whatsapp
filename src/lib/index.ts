@@ -55,6 +55,10 @@ const commands = [
     description: "Mengirim harga coin cypto",
   },
   {
+    prefix: "*.weather (nama kota)*",
+    description: "Mengirim pesan keadaan cuaca di kota yang diinput",
+  },
+  {
     prefix: "*.chat/(nomortujuan)/(pesan)*",
     description: "Mengirim pesan (admin only)",
   },
@@ -72,8 +76,6 @@ export async function handleMessage(msg: WAWebJS.Message, client: Client) {
       id: 1,
     },
   });
-
-  handeLogicClient(msg, client);
 
   const isBodyIncluded = prefixArray.some((item) =>
     body.includes(item.split(" ")[0])
@@ -135,25 +137,6 @@ export async function handleMessage(msg: WAWebJS.Message, client: Client) {
     default:
       return null;
   }
-}
-
-function handeLogicClient(msg: WAWebJS.Message, client: Client) {
-  client.on("group_join", async (notification: GroupNotification) => {
-    const chatId = notification.chatId;
-
-    // Dapatkan informasi kontak pengguna yang baru bergabung
-    for (const id of notification.recipientIds) {
-      const contact = await client.getContactById(id);
-      const name =
-        contact.pushname || contact.verifiedName || contact.name || "User";
-
-      // Kirim pesan sambutan ke grup
-      const welcomeMessage = `Selamat datang di grup Volunteer SRIFOTON 2024, ${name}!,
-semoga betah!!`;
-      console.log("masukkk");
-      client.sendMessage(chatId, welcomeMessage);
-    }
-  });
 }
 
 function handleHelp(msg: string) {
