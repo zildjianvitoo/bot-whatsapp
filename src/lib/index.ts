@@ -164,6 +164,16 @@ async function handleAIChat(msg: WAWebJS.Message, body: string) {
 async function handleSticker(msg: WAWebJS.Message, client: Client) {
   let media = await msg.downloadMedia();
 
+  const quotedMessage = await msg.getQuotedMessage();
+  if (quotedMessage && typeof quotedMessage.rawData === "object") {
+    const rawData = quotedMessage.rawData as { isViewOnce?: boolean };
+    if (rawData.isViewOnce) {
+      if (!adminOnly(msg.author || msg.from)) {
+        return "Hanya admin yang bisa mengupdate status bot";
+      }
+    }
+  }
+
   if (msg.hasQuotedMsg) {
     const quotedMsg = await msg.getQuotedMessage();
     media = await quotedMsg.downloadMedia();
@@ -188,6 +198,16 @@ async function handleSticker(msg: WAWebJS.Message, client: Client) {
 
 async function handleConvertSticker(msg: WAWebJS.Message, client: Client) {
   let media = await msg.downloadMedia();
+
+  const quotedMessage = await msg.getQuotedMessage();
+  if (quotedMessage && typeof quotedMessage.rawData === "object") {
+    const rawData = quotedMessage.rawData as { isViewOnce?: boolean };
+    if (rawData.isViewOnce) {
+      if (!adminOnly(msg.author || msg.from)) {
+        return "Hanya admin yang bisa mengupdate status bot";
+      }
+    }
+  }
 
   if (msg.hasQuotedMsg) {
     const quotedMsg = await msg.getQuotedMessage();

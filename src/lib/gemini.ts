@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export default async function replyGeminiChat(messsage: string) {
   const genAI = new GoogleGenerativeAI(
-    "AIzaSyBfRSi5jL6yF-KOPx0RC-KcTvW1IZkxciE"
+    "AIzaSyDGn7UKdxmTCwzIIrXudubSZ8clB-RzSlc"
   );
 
   const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
