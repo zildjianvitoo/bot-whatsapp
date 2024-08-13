@@ -169,7 +169,7 @@ async function handleSticker(msg: WAWebJS.Message, client: Client) {
     const rawData = quotedMessage.rawData as { isViewOnce?: boolean };
     if (rawData.isViewOnce) {
       if (!adminOnly(msg.author || msg.from)) {
-        return "Hanya admin yang bisa mengupdate status bot";
+        return "Gabisa bos mau convert jadi sticker untuk pesan sekali lihat,cuma owner yang bisa";
       }
     }
   }
@@ -204,7 +204,7 @@ async function handleConvertSticker(msg: WAWebJS.Message, client: Client) {
     const rawData = quotedMessage.rawData as { isViewOnce?: boolean };
     if (rawData.isViewOnce) {
       if (!adminOnly(msg.author || msg.from)) {
-        return "Hanya admin yang bisa mengupdate status bot";
+        return "Gabisa bos mau convert jadi gambar untuk pesan sekali lihat,,cuma owner yang bisa";
       }
     }
   }
@@ -230,6 +230,16 @@ async function handleConvertSticker(msg: WAWebJS.Message, client: Client) {
 
 async function handleRemoveBG(msg: WAWebJS.Message, client: Client) {
   const media = await msg.downloadMedia();
+
+  const quotedMessage = await msg.getQuotedMessage();
+  if (quotedMessage && typeof quotedMessage.rawData === "object") {
+    const rawData = quotedMessage.rawData as { isViewOnce?: boolean };
+    if (rawData.isViewOnce) {
+      if (!adminOnly(msg.author || msg.from)) {
+        return "Gabisa bos mau convert jadi gambar remove bg untuk pesan sekali lihat,,cuma owner yang bisa";
+      }
+    }
+  }
 
   if (!media) {
     return "Tolong upload gambar dan ketikkan ulang perintahnya";
@@ -262,6 +272,16 @@ async function handleRemoveBG(msg: WAWebJS.Message, client: Client) {
 
 async function stickerRemoveBG(msg: WAWebJS.Message, client: Client) {
   let media = await msg.downloadMedia();
+
+  const quotedMessage = await msg.getQuotedMessage();
+  if (quotedMessage && typeof quotedMessage.rawData === "object") {
+    const rawData = quotedMessage.rawData as { isViewOnce?: boolean };
+    if (rawData.isViewOnce) {
+      if (!adminOnly(msg.author || msg.from)) {
+        return "Gabisa bos mau convert jadi sticker remove bg untuk pesan sekali lihat,,cuma owner yang bisa";
+      }
+    }
+  }
 
   if (msg.hasQuotedMsg) {
     const quotedMsg = await msg.getQuotedMessage();
