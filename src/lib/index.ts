@@ -59,7 +59,7 @@ const commands = [
     description: "Mengirim pesan keadaan cuaca di kota yang diinput",
   },
   {
-    prefix: "*.chat/(nomortujuan)/(pesan)*",
+    prefix: "*.chat/(nomortujuan)/(pesan)/(jumlahpesan)*",
     description: "Mengirim pesan (admin only)",
   },
 ];
@@ -435,13 +435,24 @@ async function handleMentionEveryone(msg: WAWebJS.Message, client: Client) {
 }
 
 async function handleSendPrivateChat(msg: WAWebJS.Message, client: Client) {
-  const [_, numberToChat, messageToChat] = msg.body.split("/");
+  const [_, numberToChat, messageToChat, count] = msg.body.split("/");
   if (!adminOnly(msg.author!)) {
     return "Hanya admin yang bisa memakai fitur ini";
   }
+
+  if (isNaN(+count) || +count <= 0) {
+    return "Jumlah pesan harus berupa angka positif";
+  }
+
+  if (!numberToChat || !messageToChat) {
+    return "Nomor tujuan atau pesan tidak boleh kosong";
+  }
   try {
     // msg.react("⏱️");
-    await client.sendMessage(numberToChat + "@c.us", messageToChat);
+    for (let i = 0; i < +count; i++) {
+      await client.sendMessage(numberToChat + "@c.us", messageToChat);
+    }
+
     msg.react("✅");
     return null;
   } catch (error) {
