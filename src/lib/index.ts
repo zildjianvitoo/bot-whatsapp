@@ -456,6 +456,7 @@ async function handleSendPrivateChat(msg: WAWebJS.Message, client: Client) {
     msg.react("✅");
     return null;
   } catch (error) {
+    console.log(error);
     msg.react("❌");
     return "Error";
   }
