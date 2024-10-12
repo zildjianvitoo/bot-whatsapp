@@ -18,9 +18,8 @@ const client = new Client({
       "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html",
   },
   puppeteer: {
-    executablePath:
-      // "/usr/bin/google-chrome-stable",
-      "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    executablePath: "/usr/bin/google-chrome-stable",
+    // "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
     headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   },
