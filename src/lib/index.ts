@@ -14,7 +14,9 @@ import https from "https";
 import adminOnly from "./adminOnly";
 import { convertToMp4, dateTimeToString } from "./convert";
 import deleteFiles from "./deleteFiles";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
+
+const MR_API_BASE_URL = "https://mr-apis.com/api";
 
 const commands = [
   {
@@ -115,6 +117,8 @@ export async function handleMessage(msg: WAWebJS.Message, client: Client) {
       return handleConvertSticker(msg, client);
     case body.startsWith(".cuaca"):
       return handleWeather(msg, client);
+    case body.startsWith(".gpt"):
+      return handleGPT(msg, body);
     // case body.startsWith(".ktl"):
     //   const msgToSend = body.split(".ktl")[1];
     //   return `Kontolll ${msgToSend}`;
@@ -686,5 +690,24 @@ async function handleIzinOff(msg: WAWebJS.Message, client: Client) {
     msg.react("❌");
     console.log(error);
     return "Error";
+  }
+}
+
+async function handleGPT(msg: WAWebJS.Message, body: string) {
+  const prompt = body.split(".gpt")[1];
+
+  try {
+    msg.react("⏱️");
+    const { data } = await axios.get(
+      `${MR_API_BASE_URL}/ai/chatgpt?prompt=${prompt}`
+    );
+    msg.react("✅");
+    return data.content;
+  } catch (error) {
+    console.log(error);
+    msg.react("❌");
+    if (error instanceof AxiosError) {
+      return error.response?.data;
+    }
   }
 }

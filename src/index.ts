@@ -2,6 +2,13 @@ import { Client, GroupNotification, LocalAuth } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal";
 import { handleMessage } from "./lib";
 import { allowedGroups } from "./lib/allowedGroups";
+import express from "express";
+
+const port = 3005;
+
+const app = express();
+
+app.use(express.json());
 
 const client = new Client({
   authStrategy: new LocalAuth(),
@@ -17,6 +24,18 @@ const client = new Client({
     headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   },
+});
+
+app.post("/event-srifoton", (req, res) => {
+  const { eventName, name } = req.body;
+
+  const messsage = `${name} yang mendaftar di ${eventName}, tolong cek bukti pembayarannya!!`;
+
+  client.sendMessage("6285176734655@c.us", messsage);
+});
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`);
 });
 
 client.on("qr", (qr) => {
