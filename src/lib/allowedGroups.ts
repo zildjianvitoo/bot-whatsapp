@@ -10,4 +10,5 @@ export const allowedGroups = [
   "120363044288510915@g.us",
   "120363320654299029@g.us", //Volunteerr
   "6285182099445@c.us",
+  "120363347050088299@g.us", // Finance
 ];

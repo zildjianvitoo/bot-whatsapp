@@ -32,7 +32,7 @@ app.post("/event-srifoton", (req, res) => {
 dengan jenis pembayaran *${paymentType}*,
 tolong cek bukti pembayarannya di website!!`;
 
-  client.sendMessage("120363028702586229@g.us", messsage);
+  client.sendMessage("120363347050088299@g.us", messsage);
 });
 
 app.listen(port, () => {
@@ -59,6 +59,7 @@ semoga betah!!`;
 });
 
 client.on("message_create", async (msg) => {
+  console.log(msg.from);
   if (allowedGroups.includes(msg.from)) {
     const reply = await handleMessage(msg, client);
     if (reply !== null) {
