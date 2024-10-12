@@ -5,6 +5,7 @@ POST http://localhost:3005/event-srifoton
 content-type: application/json
 
 {
-    "name": "sample",
-    "eventName": "Talkshow"
+    "name": "Test",
+    "eventName": "Talkshow",
+    "paymentType": "Bank BCA"
 }

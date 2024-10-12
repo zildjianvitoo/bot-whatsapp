@@ -27,11 +27,13 @@ const client = new Client({
 });
 
 app.post("/event-srifoton", (req, res) => {
-  const { eventName, name } = req.body;
+  const { eventName, name, paymentType } = req.body;
 
-  const messsage = `${name} yang mendaftar di ${eventName}, tolong cek bukti pembayarannya!!`;
+  const messsage = `${name} mendaftar di *${eventName}*,
+dengan jenis pembayaran *${paymentType}*,
+tolong cek bukti pembayarannya di website!!`;
 
-  client.sendMessage("6285176734655@c.us", messsage);
+  client.sendMessage("120363028702586229@g.us", messsage);
 });
 
 app.listen(port, () => {
