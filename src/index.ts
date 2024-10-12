@@ -38,6 +38,8 @@ dengan jenis pembayaran *${paymentType}*,
 tolong cek bukti pembayarannya di website!!`;
 
   client.sendMessage("120363347050088299@g.us", messsage);
+
+  res.json({ message: "Success" });
 });
 
 app.listen(port, () => {
