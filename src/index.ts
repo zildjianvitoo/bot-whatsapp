@@ -10,7 +10,7 @@ const app = express();
 app.use(
   cors({
     credentials: true,
-    origin: "https://srifoton.hmifunsri.con",
+    origin: "https://srifoton.hmifunsri.com",
   })
 );
 app.use(express.json());
