@@ -3,11 +3,16 @@ import qrcode from "qrcode-terminal";
 import { handleMessage } from "./lib";
 import { allowedGroups } from "./lib/allowedGroups";
 import express from "express";
-
+import cors from "cors";
 const port = 3005;
 
 const app = express();
-
+app.use(
+  cors({
+    credentials: true,
+    origin: "https://srifoton.hmifunsri.con",
+  })
+);
 app.use(express.json());
 
 const client = new Client({

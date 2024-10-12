@@ -4,6 +4,7 @@
     "dev": "nodemon ./src/index.ts PORT=3005"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/pg": "^8.11.5",
     "@types/qrcode-terminal": "^0.12.2",
@@ -24,6 +25,7 @@
     "@typescript-eslint/eslint-plugin": "^7.7.0",
     "@typescript-eslint/parser": "^7.7.0",
     "axios": "^1.6.8",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "fluent-ffmpeg": "^2.1.2",

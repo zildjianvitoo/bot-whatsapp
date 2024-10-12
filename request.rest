@@ -1,7 +1,7 @@
 # GET https://api.openweathermap.org/data/2.5/weather?lat=44.34&lon=10.99&appid=03da012b03646102f8592261b843d740
 
 
-POST http://localhost:3005/event-srifoton
+POST http://139.99.89.108:3005/event-srifoton
 content-type: application/json
 
 {
