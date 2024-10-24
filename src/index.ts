@@ -1,4 +1,9 @@
-import { Client, GroupNotification, LocalAuth } from "whatsapp-web.js";
+import {
+  Client,
+  GroupNotification,
+  GroupNotificationTypes,
+  LocalAuth,
+} from "whatsapp-web.js";
 import qrcode from "qrcode-terminal";
 import { handleMessage } from "./lib";
 import { allowedGroups } from "./lib/allowedGroups";
@@ -62,6 +67,20 @@ client.on("group_join", async (notification) => {
 semoga betah!!`;
 
     client.sendMessage(chatId, welcomeMessage);
+  }
+});
+
+type Notif = {
+  notification: {
+    id: {
+      id: string;
+    };
+  };
+};
+
+client.on("group_update", async (notification) => {
+  if (notification.type === "announce") {
+    await client.sendMessage(notification.chatId, "Secepetan kito gas"); // Mengirim pesan
   }
 });
 
