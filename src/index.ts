@@ -66,7 +66,6 @@ semoga betah!!`;
 });
 
 client.on("message_create", async (msg) => {
-  console.log(msg.from);
   if (allowedGroups.includes(msg.from)) {
     const reply = await handleMessage(msg, client);
     if (reply !== null) {

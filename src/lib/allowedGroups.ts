@@ -11,4 +11,5 @@ export const allowedGroups = [
   "120363320654299029@g.us", //Volunteerr
   "6285182099445@c.us",
   "120363347050088299@g.us", // Finance
+  "120363345418600094@g.us", //Bangkit Capstone
 ];
