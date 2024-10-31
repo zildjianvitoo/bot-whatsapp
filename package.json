@@ -16,7 +16,7 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.7.0",
+    "@google/generative-ai": "^0.7.1",
     "@neondatabase/serverless": "^0.9.1",
     "@prisma/client": "^5.12.1",
     "@tobyg74/tiktok-api-dl": "^1.1.2",
