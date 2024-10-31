@@ -402,6 +402,7 @@ async function handleTiktok(msg: WAWebJS.Message, client: Client) {
 
 async function handleMentionEveryone(msg: WAWebJS.Message, client: Client) {
   const allowedAdminToMentions = ["6285176734655@c.us", "6282282658275@c.us"];
+  const message = msg.body.split(".all")[1] || "Perhatikan guys";
   msg.react("⏱️");
   try {
     const chats = await client.getChats();
@@ -424,7 +425,7 @@ async function handleMentionEveryone(msg: WAWebJS.Message, client: Client) {
       return "Hanya owner yang bisa memakai fitur ini";
     }
 
-    const messageToMention = "Kocak!!!!";
+    const messageToMention = message;
 
     await client.sendMessage(msg.from, messageToMention, {
       mentions: allNumbers,
