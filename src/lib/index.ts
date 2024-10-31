@@ -107,7 +107,7 @@ export async function handleMessage(msg: WAWebJS.Message, client: Client) {
       return handleRemoveBG(msg, client);
     case body === ".sticker-removebg":
       return stickerRemoveBG(msg, client);
-    case body === ".all":
+    case body.startsWith(".all"):
       return handleMentionEveryone(msg, client);
     case body.startsWith(".chat"):
       return handleSendPrivateChat(msg, client);
